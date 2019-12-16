@@ -17,7 +17,6 @@ final FilePath _buildDir = FilePath('build');
 final FilePath _pkgDir = FilePath('third_party/pkg');
 final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
 final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
-final FilePath _experimentalTestDir = FilePath('test/experimental');
 
 Map get _env => Platform.environment;
 
@@ -67,15 +66,6 @@ testWeb() async {
       workingDirectory: _routeDir.path);
 }
 
-// This task also requires a frame buffer to run.
-@Task()
-testExperimental() async {
-  await TestRunner().testAsync(
-    files: _experimentalTestDir.path,
-    platformSelector: 'chrome',
-  );
-}
-
 @Task('Serve locally on port 8000')
 @Depends(build)
 serve() async {
@@ -103,7 +93,6 @@ serveCustomBackend() async {
   // 'https://dart-services.appspot.com' with serverUrl.
   final List<FileSystemEntity> files = [];
   files.addAll(_buildDir.join('scripts').asDirectory.listSync());
-  files.addAll(_buildDir.join('experimental').asDirectory.listSync());
   for (FileSystemEntity entity in files) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart.js')) continue;
@@ -130,7 +119,7 @@ serveCustomBackend() async {
 build() {
   PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
 
-  FilePath mainFile = _buildDir.join('scripts/main.dart.js');
+  FilePath mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
@@ -139,19 +128,19 @@ build() {
   }
 
   FilePath newEmbedDartFile =
-      _buildDir.join('experimental/new_embed_dart.dart.js');
+      _buildDir.join('scripts/embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
   FilePath newEmbedFlutterFile =
-      _buildDir.join('experimental/new_embed_flutter.dart.js');
+      _buildDir.join('scripts/embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
   FilePath newEmbedHtmlFile =
-      _buildDir.join('experimental/new_embed_html.dart.js');
+      _buildDir.join('scripts/embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
   FilePath newEmbedInlineFile =
-      _buildDir.join('experimental/new_embed_inline.dart.js');
+      _buildDir.join('scripts/embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
@@ -170,15 +159,10 @@ build() {
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
   vulcanize('index.html');
-  vulcanize('new_playground.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-flutter.html');
   vulcanize('embed-inline.html');
-  vulcanize('experimental/embed-new-dart.html');
-  vulcanize('experimental/embed-new-flutter.html');
-  vulcanize('experimental/embed-new-html.html');
-  vulcanize('experimental/embed-new-inline.html');
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
@@ -219,17 +203,15 @@ vulcanize(String filepath) {
         '--inline-css',
         '--inline-scripts',
         '--exclude',
-        ' experimental/new_embed_dart.dart.js',
+        ' scripts/embed_dart.dart.js',
         '--exclude',
-        ' experimental/new_embed_flutter.dart.js',
+        ' scripts/embed_flutter.dart.js',
         '--exclude',
-        ' experimental/new_embed_html.dart.js',
+        ' scripts/embed_html.dart.js',
         '--exclude',
-        ' experimental/new_embed_inline.dart.js',
+        ' scripts/embed_inline.dart.js',
         '--exclude',
-        ' experimental/new_playground/main.dart.js',
-        '--exclude',
-        'scripts/main.dart.js',
+        'scripts/playground.dart.js',
         '--exclude',
         'scripts/codemirror.js',
         filepath,
@@ -278,7 +260,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, testWeb, testExperimental, coverage, build)
+@Depends(analyze, testCli, testWeb, coverage, build)
 void buildbot() => null;
 
 @Task('Prepare the app for deployment')
