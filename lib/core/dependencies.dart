@@ -7,6 +7,8 @@ library core.dependencies;
 
 import 'dart:async';
 
+typedef VoidFunc = void Function();
+
 Dependencies get deps => Dependencies.instance;
 
 /// A simple dependency manager. This class manages a collection of singletons.
@@ -45,8 +47,8 @@ class Dependencies {
   /// Get the current logical instance. This is the instance associated with the
   /// current Zone, parent Zones, or the global instance.
   static Dependencies get instance {
-    Dependencies deps = Zone.current['dependencies'];
-    return deps != null ? deps : _global;
+    var deps = Zone.current['dependencies'] as Dependencies;
+    return deps ?? _global;
   }
 
   final _instances = <Type, dynamic>{};
@@ -60,7 +62,7 @@ class Dependencies {
       return _instances[type];
     }
 
-    Dependencies parent = _calcParent(Zone.current);
+    var parent = _calcParent(Zone.current);
     return parent?.getDependency(type);
   }
 
@@ -80,8 +82,8 @@ class Dependencies {
   /// dependencies of this object. Any requests for dependencies are first
   /// satisfied with this [Dependencies] object, and then delegate up to
   /// [Dependencies] for parent Zones.
-  void runInZone(Function function) {
-    Zone zone = Zone.current.fork(zoneValues: {'dependencies': this});
+  void runInZone(VoidFunc function) {
+    var zone = Zone.current.fork(zoneValues: {'dependencies': this});
     zone.run(function);
   }
 
@@ -90,14 +92,14 @@ class Dependencies {
   Dependencies _calcParent(Zone zone) {
     if (this == _global) return null;
 
-    Zone parentZone = zone.parent;
+    var parentZone = zone.parent;
     if (parentZone == null) return _global;
 
-    Dependencies deps = parentZone['dependencies'];
+    var deps = parentZone['dependencies'] as Dependencies;
     if (deps == this) {
       return _calcParent(parentZone);
     } else {
-      return deps != null ? deps : _global;
+      return deps ?? _global;
     }
   }
 }

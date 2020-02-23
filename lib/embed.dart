@@ -197,12 +197,13 @@ class Embed {
 
     navBarElement = DElement(querySelector('#navbar'));
 
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
 
-    executeButton = MDCButton(querySelector('#execute'))
+    executeButton = MDCButton(querySelector('#execute') as ButtonElement)
       ..onClick.listen((_) => _handleExecute());
 
-    reloadGistButton = MDCButton(querySelector('#reload-gist'))
+    reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
         if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
           _loadAndShowGist();
@@ -211,13 +212,15 @@ class Embed {
         }
       });
 
-    copyCodeButton = MDCButton(querySelector('#copy-code'), isIcon: true)
-      ..onClick.listen((_) => _handleCopyCode());
-    openInDartPadButton =
-        MDCButton(querySelector('#open-in-dartpad'), isIcon: true)
-          ..onClick.listen((_) => _handleOpenInDartPad());
+    copyCodeButton =
+        MDCButton(querySelector('#copy-code') as ButtonElement, isIcon: true)
+          ..onClick.listen((_) => _handleCopyCode());
+    openInDartPadButton = MDCButton(
+        querySelector('#open-in-dartpad') as ButtonElement,
+        isIcon: true)
+      ..onClick.listen((_) => _handleOpenInDartPad());
 
-    showHintButton = MDCButton(querySelector('#show-hint'))
+    showHintButton = MDCButton(querySelector('#show-hint') as ButtonElement)
       ..onClick.listen((_) {
         var hintElement = DivElement()..text = context.hint;
         var showSolutionButton = AnchorElement()
@@ -237,15 +240,16 @@ class Embed {
         DElement(querySelector('#editable-test-solution-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
-    menuButton = MDCButton(querySelector('#menu-button'), isIcon: true)
-      ..onClick.listen((_) {
-        menu.open = !menu.open;
-      });
+    menuButton =
+        MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
+          ..onClick.listen((_) {
+            menu.open = !menu.open;
+          });
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton.element);
     menu.listen('MDCMenu:selected', (e) {
-      final selectedIndex = (e as CustomEvent).detail['index'];
+      final selectedIndex = (e as CustomEvent).detail['index'] as int;
       switch (selectedIndex) {
         case 0:
           // Show test code
@@ -264,13 +268,13 @@ class Embed {
       }
     });
 
-    formatButton = MDCButton(querySelector('#format-code'))
+    formatButton = MDCButton(querySelector('#format-code') as ButtonElement)
       ..onClick.listen(
         (_) => _format(),
       );
 
-    testResultBox = FlashBox(querySelector('#test-result-box'));
-    hintBox = FlashBox(querySelector('#hint-box'));
+    testResultBox = FlashBox(querySelector('#test-result-box') as DivElement);
+    hintBox = FlashBox(querySelector('#hint-box') as DivElement);
     var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
     userCodeEditor = editorFactory.createFromElement(
@@ -335,9 +339,11 @@ class Embed {
       cssTabView = TabView(DElement(querySelector('#css-view')));
     }
 
-    executionSvc = ExecutionServiceIFrame(querySelector('#frame'))
-      ..frameSrc =
-          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
+    executionSvc =
+        ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
+          ..frameSrc = isDarkMode
+              ? '../scripts/frame_dark.html'
+              : '../scripts/frame.html';
 
     executionSvc.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
@@ -395,10 +401,7 @@ class Embed {
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
-    _initModules()
-        .then((_) => _initNewEmbed())
-        .then((_) => _emitReady())
-        .then((_) {
+    _initModules().then((_) => _init()).then((_) => _emitReady()).then((_) {
       if (options.mode == EmbedMode.flutter) {
         notifyIfWebKit(dialog);
       }
@@ -418,7 +421,8 @@ class Embed {
       var type = data['type'];
 
       if (type == 'sourceCode') {
-        lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
+        lastInjectedSourceCode =
+            Map<String, String>.from(data['sourceCode'] as Map);
         _resetCode();
 
         if (autoRunEnabled && !isRunningInWebKit()) {
@@ -464,6 +468,22 @@ class Embed {
   // ID of an API Doc sample that should be loaded into the editors.
   String get sampleId => _getQueryParam('sample_id');
 
+  // An optional channel indicating which version of the API Docs to use when
+  // loading a sample. Defaults to the stable channel.
+  FlutterSdkChannel get sampleChannel {
+    final channelStr = _getQueryParam('sample_channel')?.toLowerCase();
+
+    if (channelStr == 'master') {
+      return FlutterSdkChannel.master;
+    } else if (channelStr == 'dev') {
+      return FlutterSdkChannel.dev;
+    } else if (channelStr == 'beta') {
+      return FlutterSdkChannel.beta;
+    } else {
+      return FlutterSdkChannel.stable;
+    }
+  }
+
   // GitHub params for loading an exercise from a repo. The first three are
   // required to load something, while the fourth, gh_ref, is an optional branch
   // name or commit SHA.
@@ -479,7 +499,7 @@ class Embed {
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
 
   Future<void> _initModules() async {
-    ModuleManager modules = ModuleManager();
+    var modules = ModuleManager();
 
     modules.register(DartPadModule());
     modules.register(DartServicesModule());
@@ -487,7 +507,7 @@ class Embed {
     await modules.start();
   }
 
-  void _initNewEmbed() {
+  void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
 
@@ -568,7 +588,7 @@ class Embed {
 
     editorIsBusy = true;
 
-    final GistLoader loader = deps[GistLoader];
+    final loader = deps[GistLoader] as GistLoader;
 
     try {
       Gist gist;
@@ -576,7 +596,12 @@ class Embed {
       if (gistId.isNotEmpty) {
         gist = await loader.loadGist(gistId);
       } else if (sampleId.isNotEmpty) {
-        gist = await loader.loadGistFromAPIDocs(sampleId);
+        // Right now, there are only two hosted versions of the docs: master and
+        // stable. Default to stable for dev and beta.
+        final channel = (sampleChannel == FlutterSdkChannel.master)
+            ? FlutterSdkChannel.master
+            : FlutterSdkChannel.stable;
+        gist = await loader.loadGistFromAPIDocs(sampleId, channel);
       } else {
         gist = await loader.loadGistFromRepo(
           owner: githubOwner,
@@ -662,7 +687,7 @@ class Embed {
 
   String _getActiveSourceCode() {
     String activeSource;
-    String activeTabName = tabController.selectedTab.name;
+    var activeTabName = tabController.selectedTab.name;
 
     switch (activeTabName) {
       case 'editor':
@@ -695,6 +720,9 @@ class Embed {
     context.htmlSource = sources['index.html'] ?? '';
     context.cssSource = sources['styles.css'] ?? '';
     context.hint = sources['hint.txt'] ?? '';
+    if (sources.containsKey('ga_id')) {
+      _sendVirtualPageView(sources['ga_id']);
+    }
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
     menuButton.toggleAttr('hidden', context.testMethod.isEmpty);
@@ -784,6 +812,15 @@ class Embed {
     }
   }
 
+  void _sendVirtualPageView(String id) {
+    var url = Uri.parse(window.location.toString());
+    var newParams = Map<String, String>.from(url.queryParameters);
+    newParams['ga_id'] = id;
+    var pageName = url.replace(queryParameters: newParams);
+    var path = '${pageName.path}?${pageName.query}';
+    ga?.sendPage(pageName: path);
+  }
+
   void _displayIssues(List<AnalysisIssue> issues) {
     testResultBox.hide();
     hintBox.hide();
@@ -811,7 +848,7 @@ class Embed {
 
         _displayIssues(result.issues);
 
-        Iterable<Annotation> issues = result.issues.map((AnalysisIssue issue) {
+        var issues = result.issues.map((AnalysisIssue issue) {
           final charStart = issue.charStart;
           final startLine = lines.getLineForOffset(charStart);
           final endLine = lines.getLineForOffset(charStart + issue.charLength);
@@ -834,7 +871,7 @@ class Embed {
         userCodeEditor.document.setAnnotations(issues.toList());
       }).catchError((e) {
         if (e is! TimeoutException) {
-          final String message = e is ApiRequestError ? e.message : '$e';
+          final message = e is ApiRequestError ? e.message : '$e';
 
           _displayIssues([
             AnalysisIssue()
@@ -853,13 +890,12 @@ class Embed {
   }
 
   void _format() async {
-    String originalSource = userCodeEditor.document.value;
-    SourceRequest input = SourceRequest()..source = originalSource;
+    var originalSource = userCodeEditor.document.value;
+    var input = SourceRequest()..source = originalSource;
 
     try {
       formatButton.disabled = true;
-      FormatResponse result =
-          await dartServices.format(input).timeout(serviceCallTimeout);
+      var result = await dartServices.format(input).timeout(serviceCallTimeout);
 
       formatButton.disabled = false;
 
@@ -884,7 +920,7 @@ class Embed {
   }
 
   int get initialSplitPercent {
-    const int defaultSplitPercentage = 70;
+    const defaultSplitPercentage = 70;
 
     final url = Uri.parse(window.location.toString());
     if (!url.queryParameters.containsKey('split')) {
@@ -901,7 +937,7 @@ class Embed {
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
-    Document doc = userCodeEditor.document;
+    var doc = userCodeEditor.document;
 
     doc.select(
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
@@ -919,6 +955,7 @@ class EmbedTabController extends MaterialTabController {
 
   EmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
 
+  @override
   void registerTab(TabElement tab) {
     tabs.add(tab);
 
@@ -939,8 +976,8 @@ class EmbedTabController extends MaterialTabController {
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
             '</span> and then <span style="font-weight:bold">Hint</span>.',
-        yesText: "Show solution",
-        noText: "Cancel",
+        yesText: 'Show solution',
+        noText: 'Cancel',
       );
       // Go back to the editor tab
       if (result == DialogResult.no) {
@@ -1109,6 +1146,7 @@ class ConsoleExpandController extends Console {
     expandButton.onClick.listen((_) => _toggleExpanded());
   }
 
+  @override
   void showOutput(String message, {bool error = false}) {
     super.showOutput(message, error: error);
     if (!_expanded && message != null) {
@@ -1116,6 +1154,7 @@ class ConsoleExpandController extends Console {
     }
   }
 
+  @override
   void clear() {
     super.clear();
     unreadCounter.clear();
@@ -1144,7 +1183,7 @@ class ConsoleExpandController extends Console {
         // TODO(ryjohn): why does this happen?
       }
     }
-    this.onSizeChanged();
+    onSizeChanged();
   }
 
   void _initSplitter() {

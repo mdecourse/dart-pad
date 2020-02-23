@@ -81,7 +81,7 @@ var resultFunction = _result;
 ''';
 
   String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
-    final String postMessagePrint = '''
+    final postMessagePrint = '''
 var testKey = '$testKey';
 
 function dartPrint(message) {
@@ -112,7 +112,7 @@ require.undef('dartpad_main');
     ///
     /// This seems to produce both the stack traces we expect in inspector
     /// and the right error messages on the console.
-    final String exceptionHandler = '''
+    final exceptionHandler = '''
 var _thrownDartMainRunner = false;
 
 window.onerror = function(message, url, lineNumber, colno, error) {
@@ -128,7 +128,7 @@ window.onerror = function(message, url, lineNumber, colno, error) {
 };
 ''';
 
-    String requireConfig = '';
+    var requireConfig = '';
     if (modulesBaseUrl != null) {
       requireConfig = '''
 require.config({
@@ -138,9 +138,9 @@ require.config({
 ''';
     }
 
-    final bool usesRequireJs = modulesBaseUrl != null;
+    final usesRequireJs = modulesBaseUrl != null;
 
-    String postfix = '';
+    var postfix = '';
     if (usesRequireJs) {
       postfix = '''
 require(['dart_sdk'],
@@ -183,7 +183,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     }
 
     return '$postMessagePrint\n$exceptionHandler\n$requireConfig\n'
-        '$javaScript\n$postfix'
+            '$javaScript\n$postfix'
         .trim();
   }
 
@@ -196,8 +196,8 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   @override
   Stream<TestResult> get testResults => _testResultsController.stream;
 
-  Future _send(String command, Map params) {
-    Map m = {'command': command};
+  Future _send(String command, Map<String, String> params) {
+    var m = {'command': command};
     m.addAll(params);
     frame.contentWindow.postMessage(m, '*');
     return Future.value();
@@ -208,11 +208,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     if (frame.parent != null) {
       _readyCompleter = Completer();
 
-      IFrameElement clone = _frame.clone(false);
+      var clone = _frame.clone(false) as IFrameElement;
       clone.src = _frameSrc;
 
-      List<Element> children = frame.parent.children;
-      int index = children.indexOf(_frame);
+      var children = frame.parent.children;
+      var index = children.indexOf(_frame);
       children.insert(index, clone);
       frame.parent.children.remove(_frame);
       _frame = clone;
@@ -224,22 +224,23 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   void _initListener() {
-    context['dartMessageListener'] = JsFunction.withThis((_this, data) {
-      String type = data['type'];
+    context['dartMessageListener'] =
+        JsFunction.withThis((_this, data) {
+      var type = data['type'] as String;
 
       if (type == 'testResult') {
-        final result = TestResult(
-            data['success'], List<String>.from(data['messages'] ?? []));
+        final result = TestResult(data['success'] as bool,
+            List<String>.from(data['messages'] as Iterable ?? []));
         _testResultsController.add(result);
       } else if (type == 'stderr') {
         // Ignore any exceptions before the iframe has completed initialization.
         if (_readyCompleter.isCompleted) {
-          _stderrController.add(data['message']);
+          _stderrController.add(data['message'] as String);
         }
       } else if (type == 'ready' && !_readyCompleter.isCompleted) {
         _readyCompleter.complete();
       } else {
-        _stdoutController.add(data['message']);
+        _stdoutController.add(data['message'] as String);
       }
     });
   }

@@ -11,29 +11,26 @@ import 'core/dependencies.dart';
 import 'core/keys.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
-import 'services/_dartpadsupportservices.dart';
 import 'services/dartservices.dart';
 import 'services/execution.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
 
-Analytics get ga => deps[Analytics];
+Analytics get ga => deps[Analytics] as Analytics;
 
-Context get context => deps[Context];
+Context get context => deps[Context] as Context;
 
-DartservicesApi get dartServices => deps[DartservicesApi];
+DartservicesApi get dartServices => deps[DartservicesApi] as DartservicesApi;
 
-P_dartpadsupportservicesApi get dartSupportServices =>
-    deps[P_dartpadsupportservicesApi];
+EditorFactory get editorFactory => deps[EditorFactory] as EditorFactory;
 
-EditorFactory get editorFactory => deps[EditorFactory];
+ExecutionService get executionService =>
+    deps[ExecutionService] as ExecutionService;
 
-ExecutionService get executionService => deps[ExecutionService];
+GistLoader get gistLoader => deps[GistLoader] as GistLoader;
 
-GistLoader get gistLoader => deps[GistLoader];
+Keys get keys => deps[Keys] as Keys;
 
-Keys get keys => deps[Keys];
+Router get router => deps[Router] as Router;
 
-Router get router => deps[Router];
-
-State get state => deps[State];
+State get state => deps[State] as State;

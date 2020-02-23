@@ -20,11 +20,11 @@ class OkCancelDialog extends DDialog {
     element.classes.toggle('sharing-dialog', true);
     content.add(ParagraphElement())..text = message;
 
-    DButton cancelButton = buttonArea.add(DButton.button(text: cancelText));
+    var cancelButton = buttonArea.add(DButton.button(text: cancelText));
     buttonArea.add(SpanElement()..attributes['flex'] = '');
     cancelButton.onClick.listen((_) => hide());
 
-    DButton okButton =
+    var okButton =
         buttonArea.add(DButton.button(text: okText, classes: 'default'));
     okButton.onClick.listen((_) {
       okAction();
@@ -35,13 +35,13 @@ class OkCancelDialog extends DDialog {
 
 class AboutDialog extends DDialog {
   AboutDialog([String versionText]) : super(title: 'About DartPad') {
-    ParagraphElement p = content.add(ParagraphElement());
-    String text = privacyText;
+    var p = content.add(ParagraphElement());
+    var text = privacyText;
     if (versionText != null) text += ' Based on Dart SDK $versionText.';
     p.setInnerHtml(text, validator: PermissiveNodeValidator());
 
     buttonArea.add(SpanElement()..attributes['flex'] = '');
-    DButton okButton =
+    var okButton =
         buttonArea.add(DButton.button(text: 'OK', classes: 'default'));
     okButton.onClick.listen((_) => hide());
   }
@@ -93,10 +93,9 @@ class SharingDialog extends DDialog {
 
     // Already sharing.
     _div = DElement.tag('div')..layoutVertical();
-    DElement div =
-        _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    var div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(DElement.tag('span', classes: 'sharinglabel'))..text = 'DartPad:';
-    DElement inputGroup = div.add(DElement.tag('div'))
+    var inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
     _padUrl = inputGroup.add(DInput.input(type: 'text'))
@@ -124,21 +123,19 @@ class SharingDialog extends DDialog {
       ..readonly()
       ..value =
           "<iframe src='https://$home/embed-dart.html?id=${gistContainer.mutableGist.id}' "
-          "style='height:300px;width:100%;' frameborder='0'></iframe>";
+              "style='height:300px;width:100%;' frameborder='0'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
     div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     _embedArea = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    DElement _leftArea = _embedArea.add(DElement.tag('div')
+    var _leftArea = _embedArea.add(DElement.tag('div')
       ..layoutVertical()
       ..flex()
       ..element.style.paddingLeft = '16px');
-    DElement _rightArea = _embedArea.add(DElement.tag('div'));
-    DElement _embedDartArea =
-        _leftArea.add(DElement.tag('div')..layoutHorizontal());
-    DElement _embedHtmlArea =
-        _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    var _rightArea = _embedArea.add(DElement.tag('div'));
+    var _embedDartArea = _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    var _embedHtmlArea = _leftArea.add(DElement.tag('div')..layoutHorizontal());
     _embedDartRadio = _embedDartArea.add(RadioButtonInputElement()
       ..name = 'embed'
       ..id = 'dart-radio');
@@ -226,7 +223,7 @@ class SharingDialog extends DDialog {
       _text.text =
           'Share the DartPad link or view the source at gist.github.com:';
       _textArea.style.display = 'none';
-      MutableGist gist = gistContainer.mutableGist;
+      var gist = gistContainer.mutableGist;
       content.add(_div);
       _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
       _gistUrl.value = gist.htmlUrl;
@@ -248,10 +245,10 @@ class KeysDialog extends DDialog {
   }
 
   DListElement get keyMapToHtml {
-    DListElement dl = DListElement();
+    var dl = DListElement();
     keyMap.forEach((Action action, Set<String> keys) {
       if (!action.hidden) {
-        String string = '';
+        var string = '';
         for (final key in keys) {
           if (makeKeyPresentable(key) != null) {
             string += '<span>${makeKeyPresentable(key)}</span>';

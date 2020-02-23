@@ -30,23 +30,22 @@ class DartCompleter extends CodeCompleter {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel();
 
-    int offset = editor.document.indexFromPos(editor.document.cursor);
+    var offset = editor.document.indexFromPos(editor.document.cursor);
 
     var request = SourceRequest()
       ..source = editor.document.value
       ..offset = offset;
 
-    CancellableCompleter<CompletionResult> completer =
-        CancellableCompleter<CompletionResult>();
+    var completer = CancellableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
-      List<Completion> completions = [];
+      var completions = <Completion>[];
       var fixesFuture =
           servicesApi.fixes(request).then((FixesResponse response) {
-        for (ProblemAndFixes problemFix in response.fixes) {
-          for (CandidateFix fix in problemFix.fixes) {
-            List<SourceEdit> fixes = fix.edits.map((edit) {
+        for (var problemFix in response.fixes) {
+          for (var fix in problemFix.fixes) {
+            var fixes = fix.edits.map((edit) {
               return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
 
@@ -103,24 +102,24 @@ class DartCompleter extends CodeCompleter {
       servicesApi.complete(request).then((CompleteResponse response) {
         if (completer.isCancelled) return;
 
-        int replaceOffset = response.replacementOffset;
-        int replaceLength = response.replacementLength;
+        var replaceOffset = response.replacementOffset;
+        var replaceLength = response.replacementLength;
 
-        Iterable<AnalysisCompletion> responses =
-            response.completions.map((Map completion) {
+        var responses =
+            response.completions.map((Map<String, dynamic> completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
-        List<Completion> completions = responses.map((completion) {
+        var completions = responses.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.
-          String displayString = completion.isMethod
+          var displayString = completion.isMethod
               ? '${completion.text}${completion.parameters}'
               : completion.text;
           if (completion.isMethod && completion.returnType != null) {
             displayString += ' → ${completion.returnType}';
           }
 
-          String text = completion.text;
+          var text = completion.text;
 
           if (completion.isMethod) {
             text += '()';
@@ -130,7 +129,7 @@ class DartCompleter extends CodeCompleter {
             displayString += '()';
           }
 
-          String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+          var deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
           if (completion.type == null) {
             return Completion(
@@ -155,8 +154,8 @@ class DartCompleter extends CodeCompleter {
         }).toList();
 
         // Removes duplicates when a completion is both a getter and a setter.
-        for (Completion completion in completions) {
-          for (Completion other in completions) {
+        for (var completion in completions) {
+          for (var other in completions) {
             if (completion.isSetterAndMatchesGetter(other)) {
               completions.removeWhere((c) => completion == c);
               other.type = 'type-getter_and_setter';
@@ -182,7 +181,7 @@ class AnalysisCompletion implements Comparable {
   final int offset;
   final int length;
 
-  Map _map;
+  Map<String, dynamic> _map;
 
   AnalysisCompletion(this.offset, this.length, Map<String, dynamic> map) {
     _map = Map<String, dynamic>.from(map);
@@ -198,12 +197,12 @@ class AnalysisCompletion implements Comparable {
   // Convert maps and lists that have been passed as json.
   void _convert(String key) {
     if (_map[key] is String) {
-      _map[key] = jsonDecode(_map[key]);
+      _map[key] = jsonDecode(_map[key] as String);
     }
   }
 
   // KEYWORD, INVOCATION, ...
-  String get kind => _map['kind'];
+  String get kind => _map['kind'] as String;
 
   bool get isMethod {
     var element = _map['element'];
@@ -214,12 +213,14 @@ class AnalysisCompletion implements Comparable {
 
   bool get isConstructor => type == 'CONSTRUCTOR';
 
-  String get parameters => isMethod ? _map['element']['parameters'] : null;
+  String get parameters =>
+      isMethod ? _map['element']['parameters'] as String : null;
 
-  int get parameterCount => isMethod ? _map['parameterNames'].length : null;
+  int get parameterCount =>
+      isMethod ? _map['parameterNames'].length as int : null;
 
   String get text {
-    String str = _map['completion'];
+    var str = _map['completion'] as String;
     if (str.startsWith('(') && str.endsWith(')')) {
       return str.substring(1, str.length - 1);
     } else {
@@ -227,21 +228,21 @@ class AnalysisCompletion implements Comparable {
     }
   }
 
-  String get returnType => _map['returnType'];
+  String get returnType => _map['returnType'] as String;
 
-  int get relevance => _int(_map['relevance']);
+  int get relevance => _int(_map['relevance'] as String);
 
   bool get isDeprecated => _map['isDeprecated'] == 'true';
 
   bool get isPotential => _map['isPotential'] == 'true';
 
-  int get selectionLength => _int(_map['selectionLength']);
+  int get selectionLength => _int(_map['selectionLength'] as String);
 
-  int get selectionOffset => _int(_map['selectionOffset']);
+  int get selectionOffset => _int(_map['selectionOffset'] as String);
 
   // FUNCTION, GETTER, CLASS, ...
   String get type =>
-      _map.containsKey('element') ? _map['element']['kind'] : kind;
+      _map.containsKey('element') ? _map['element']['kind'] as String : kind;
 
   bool matchesCompletionFragment(String completionFragment) =>
       text.toLowerCase().startsWith(completionFragment.toLowerCase());
@@ -249,7 +250,7 @@ class AnalysisCompletion implements Comparable {
   @override
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;
-    return text.compareTo(other.text);
+    return text.compareTo(other.text as String);
   }
 
   @override

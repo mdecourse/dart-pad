@@ -5,7 +5,7 @@
 import 'package:dart_pad/inject/inject_parser.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('InjectParser', () {
     test('can parse files', () {
       var parser = InjectParser(_codelab);
@@ -13,7 +13,7 @@ main() {
       expect(files, isNotEmpty);
       expect(files['main.dart'], "String message = 'Hello, World!';\n");
       expect(files['solution.dart'], "String message = 'delete your code';\n");
-      expect(files['test.dart'], "main() => print(message);\n");
+      expect(files['test.dart'], 'main() => print(message);\n');
     });
 
     test('throws with invalid input', () {
@@ -36,7 +36,7 @@ main() {
 
     test('supports options ', () {
       var options = LanguageStringParser('run-dartpad:mode-html:theme-dark'
-              ':run-true:split-50:width-100%:height-400px')
+              ':run-true:split-50:width-100%:height-400px:ga_id-example1')
           .options;
       expect(options, isNotEmpty);
       expect(options['mode'], equals('html'));
@@ -45,6 +45,7 @@ main() {
       expect(options['split'], equals('50'));
       expect(options['width'], equals('100%'));
       expect(options['height'], equals('400px'));
+      expect(options['ga_id'], equals('example1'));
     });
   });
 }

@@ -15,11 +15,17 @@ import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
 
-
 final String _dartpadLink =
     '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
+
+enum FlutterSdkChannel {
+  master,
+  dev,
+  beta,
+  stable,
+}
 
 /// Return whether the given string is a valid github gist ID.
 bool isLegalGistId(String id) {
@@ -44,7 +50,7 @@ String extractHtmlBody(String html) {
 }
 
 Gist createSampleDartGist() {
-  Gist gist = Gist();
+  var gist = Gist();
   // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
@@ -56,7 +62,7 @@ Gist createSampleDartGist() {
 }
 
 Gist createSampleHtmlGist() {
-  Gist gist = Gist();
+  var gist = Gist();
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
   gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
@@ -69,7 +75,7 @@ Gist createSampleHtmlGist() {
 }
 
 Gist createSampleFlutterGist() {
-  Gist gist = Gist();
+  var gist = Gist();
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
   gist.files.add(GistFile(
@@ -82,21 +88,21 @@ Gist createSampleFlutterGist() {
 /// Find the best match for the given file names in the gist file info; return
 /// the file (or `null` if no match is found).
 GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
-  List<GistFile> files = gist.files;
+  var files = gist.files;
 
-  for (String name in names) {
-    GistFile file = files.firstWhere((f) => f.name == name, orElse: () => null);
+  for (var name in names) {
+    var file = files.firstWhere((f) => f.name == name, orElse: () => null);
     if (file != null) return file;
   }
 
   if (matcher != null) {
-    return files.firstWhere((f) => matcher(f.name), orElse: () => null);
+    return files.firstWhere((f) => matcher(f.name) as bool, orElse: () => null);
   } else {
     return null;
   }
 }
 
-typedef void GistFilterHook(Gist gist);
+typedef GistFilterHook = void Function(Gist gist);
 
 enum GistLoaderFailureType {
   unknown,
@@ -119,31 +125,32 @@ class GistLoader {
   static const String _repoContentsAuthority = 'api.github.com';
   static const String _metadataFilename = 'dartpad_metadata.yaml';
 
-  // TODO(redbrogdon): Remove 'master-' once the new docs go live.
-  static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
+  static const String _stableApiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _masterApiDocsUrl =
+      'https://master-api.flutter.dev/snippets';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
     if (gist.getFile('body.html') != null &&
         gist.getFile('index.html') == null) {
-      GistFile file = gist.getFile('body.html');
+      var file = gist.getFile('body.html');
       file.name = 'index.html';
     }
 
     if (gist.getFile('style.css') != null &&
         gist.getFile('styles.css') == null) {
-      GistFile file = gist.getFile('style.css');
+      var file = gist.getFile('style.css');
       file.name = 'styles.css';
     }
 
     if (gist.getFile('main.dart') == null &&
         gist.files.where((f) => f.name.endsWith('.dart')).length == 1) {
-      GistFile file = gist.files.firstWhere((f) => f.name.endsWith('.dart'));
+      var file = gist.files.firstWhere((f) => f.name.endsWith('.dart'));
       file.name = 'main.dart';
     }
 
     // Extract the body out of the html file.
-    GistFile htmlFile = gist.getFile('index.html');
+    var htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = extractHtmlBody(htmlFile.content);
     }
@@ -151,16 +158,16 @@ class GistLoader {
 
   static final GistFilterHook _defaultSaveHook = (Gist gist) {
     // Create a full html file on save.
-    bool hasStyles = gist.getFile('styles.css') != null;
-    String styleRef =
+    var hasStyles = gist.getFile('styles.css') != null;
+    var styleRef =
         hasStyles ? '    <link rel="stylesheet" href="styles.css">\n' : '';
 
-    bool hasDart = gist.getFile('main.dart') != null;
-    String dartRef = hasDart
+    var hasDart = gist.getFile('main.dart') != null;
+    var dartRef = hasDart
         ? '    <script type="application/dart" src="main.dart"></script>\n'
         : '';
 
-    GistFile htmlFile = gist.getFile('index.html');
+    var htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = '''
 <!DOCTYPE html>
@@ -180,7 +187,7 @@ $styleRef$dartRef  </head>
     }
 
     // Update the readme for this gist.
-    GistFile readmeFile = GistFile(
+    var readmeFile = GistFile(
         name: 'readme.md',
         content: _createReadmeContents(
             title: gist.description,
@@ -216,7 +223,8 @@ $styleRef$dartRef  </head>
       throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    final gist = Gist.fromMap(json.decode(response.body));
+    final gist =
+        Gist.fromMap(json.decode(response.body) as Map<String, dynamic>);
 
     if (afterLoadHook != null) {
       afterLoadHook(gist);
@@ -225,8 +233,17 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    final response = await _client.get('$_apiDocsUrl/$sampleId.dart');
+  Future<Gist> loadGistFromAPIDocs(
+      String sampleId, FlutterSdkChannel channel) async {
+    if (channel == FlutterSdkChannel.beta || channel == FlutterSdkChannel.dev) {
+      throw ArgumentError('Only stable and master channels are supported!');
+    }
+
+    final sampleUrl = (channel == FlutterSdkChannel.master)
+        ? '$_masterApiDocsUrl/$sampleId.dart'
+        : '$_stableApiDocsUrl/$sampleId.dart';
+
+    final response = await _client.get(sampleUrl);
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -298,7 +315,7 @@ $styleRef$dartRef  </head>
         throw FormatException();
       }
 
-      metadata = ExerciseMetadata.fromMap(Map<String, dynamic>.from(yamlMap));
+      metadata = ExerciseMetadata.fromMap(yamlMap);
     } on MetadataException catch (ex) {
       throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
           'Issue parsing metadata: $ex');
@@ -332,7 +349,7 @@ $styleRef$dartRef  </head>
     final gistFiles = <GistFile>[];
 
     // Responses should be in the order they're listed in the metadata.
-    for (int i = 0; i < metadata.files.length; i++) {
+    for (var i = 0; i < metadata.files.length; i++) {
       gistFiles.add(GistFile(
         name: metadata.files[i].name,
         content: responses[i],
@@ -367,14 +384,15 @@ class Gist {
     files ??= [];
   }
 
-  Gist.fromMap(Map map) {
-    id = map['id'];
-    description = map['description'];
-    public = map['public'];
-    htmlUrl = map['html_url'];
-    summary = map['summary'];
-    Map f = map['files'];
-    files = f.keys.map((key) => GistFile.fromMap(key, f[key])).toList();
+  Gist.fromMap(Map<String, dynamic> map) {
+    id = map['id'] as String;
+    description = map['description'] as String;
+    public = map['public'] as bool;
+    htmlUrl = map['html_url'] as String;
+    summary = map['summary'] as String;
+    var f = map['files'];
+    files = List<GistFile>.from(f.keys
+        .map((key) => GistFile.fromMap(key as String, f[key])) as Iterable);
   }
 
   dynamic operator [](String key) {
@@ -383,7 +401,7 @@ class Gist {
     if (key == 'html_url') return htmlUrl;
     if (key == 'public') return public;
     if (key == 'summary') return summary;
-    for (GistFile file in files) {
+    for (var file in files) {
       if (file.name == key) return file.content;
     }
     return null;
@@ -401,7 +419,7 @@ class Gist {
 
   bool hasWebContent() {
     return files.any((GistFile file) {
-      final bool isWebFile =
+      final isWebFile =
           file.name.endsWith('.html') || file.name.endsWith('.css');
       return isWebFile && file.content.trim().isNotEmpty;
     });
@@ -414,13 +432,13 @@ class Gist {
   }
 
   Map toMap() {
-    Map m = {};
+    var m = <String, dynamic>{};
     if (id != null) m['id'] = id;
     if (description != null) m['description'] = description;
     if (public != null) m['public'] = public;
     if (summary != null) m['summary'] = summary;
     m['files'] = {};
-    for (GistFile file in files) {
+    for (var file in files) {
       if (file.hasContent) {
         m['files'][file.name] = {'content': file.content};
       }
@@ -430,7 +448,7 @@ class Gist {
 
   String toJson() => json.encode(toMap());
 
-  Gist clone() => Gist.fromMap(json.decode(toJson()));
+  Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String, dynamic>);
 
   @override
   String toString() => id;
@@ -442,8 +460,8 @@ class GistFile {
 
   GistFile({this.name, this.content});
 
-  GistFile.fromMap(this.name, Map data) {
-    content = data['content'];
+  GistFile.fromMap(this.name, data) {
+    content = data['content'] as String;
   }
 
   bool get hasContent => content != null && content.trim().isNotEmpty;
@@ -464,7 +482,7 @@ class GistSummary {
 }
 
 String _createReadmeContents({String title, String summary, String withLink}) {
-  String str = '# $title\n';
+  var str = '# $title\n';
 
   if (summary != null) {
     str += '\n$summary\n';

@@ -36,7 +36,6 @@ import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'playground_context.dart';
-import 'services/_dartpadsupportservices.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
@@ -144,18 +143,34 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  DivElement get _editorHost => querySelector('#editor-host');
-  DivElement get _rightConsoleElement => querySelector('#right-output-panel');
+  DivElement get _editorHost => querySelector('#editor-host') as DivElement;
+
+  DivElement get _rightConsoleElement =>
+      querySelector('#right-output-panel') as DivElement;
+
   DivElement get _rightConsoleContentElement =>
-      querySelector('#right-output-panel-content');
-  DivElement get _leftConsoleElement => querySelector('#left-output-panel');
-  IFrameElement get _frame => querySelector('#frame');
-  DivElement get _rightDocPanel => querySelector('#right-doc-panel');
+      querySelector('#right-output-panel-content') as DivElement;
+
+  DivElement get _leftConsoleElement =>
+      querySelector('#left-output-panel') as DivElement;
+
+  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
+
+  DivElement get _rightDocPanel =>
+      querySelector('#right-doc-panel') as DivElement;
+
   DivElement get _rightDocContentElement =>
-      querySelector('#right-doc-panel-content');
-  DivElement get _leftDocPanel => querySelector('#left-doc-panel');
-  DivElement get _editorPanelHeader => querySelector('#editor-panel-header');
-  DivElement get _editorPanelFooter => querySelector('#editor-panel-footer');
+      querySelector('#right-doc-panel-content') as DivElement;
+
+  DivElement get _leftDocPanel =>
+      querySelector('#left-doc-panel') as DivElement;
+
+  DivElement get _editorPanelHeader =>
+      querySelector('#editor-panel-header') as DivElement;
+
+  DivElement get _editorPanelFooter =>
+      querySelector('#editor-panel-footer') as DivElement;
+
   bool get _isCompletionActive => editor.completionActive;
 
   void _initDialogs() {
@@ -199,26 +214,32 @@ class Playground implements GistContainer, GistController {
   }
 
   void _initButtons() {
-    newButton = MDCButton(querySelector('#new-button'))
+    newButton = MDCButton(querySelector('#new-button') as ButtonElement)
       ..onClick.listen((_) => _showCreateGistDialog());
-    resetButton = MDCButton(querySelector('#reset-button'))
+    resetButton = MDCButton(querySelector('#reset-button') as ButtonElement)
       ..onClick.listen((_) => _showResetDialog());
-    formatButton = MDCButton(querySelector('#format-button'))
+    formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
-    samplesButton = MDCButton(querySelector('#samples-dropdown-button'))
-      ..onClick.listen((e) {
-        samplesMenu.open = !samplesMenu.open;
-      });
+    samplesButton =
+        MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
+          ..onClick.listen((e) {
+            samplesMenu.open = !samplesMenu.open;
+          });
 
-    runButton = MDCButton(querySelector('#run-button'))
+    runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
         _handleRun();
       });
-    editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab'));
-    editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
-    closePanelButton =
-        MDCButton(querySelector('#editor-panel-close-button'), isIcon: true);
-    moreMenuButton = MDCButton(querySelector('#more-menu-button'), isIcon: true)
+    editorConsoleTab =
+        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+    editorDocsTab =
+        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+    closePanelButton = MDCButton(
+        querySelector('#editor-panel-close-button') as ButtonElement,
+        isIcon: true);
+    moreMenuButton = MDCButton(
+        querySelector('#more-menu-button') as ButtonElement,
+        isIcon: true)
       ..onClick.listen((_) {
         moreMenu.open = !moreMenu.open;
       });
@@ -242,13 +263,12 @@ class Playground implements GistContainer, GistController {
       Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
       Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
       Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-      Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.html),
-      Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.html),
       Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
       Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
-      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics', Layout.flutter),
-      Sample(
-          '40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations', Layout.flutter),
+      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
+          Layout.flutter),
+      Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
+          Layout.flutter),
     ];
 
     var listElement = UListElement()
@@ -289,7 +309,7 @@ class Playground implements GistContainer, GistController {
       ..hoistMenuToBody();
 
     samplesMenu.listen('MDCMenu:selected', (e) {
-      var index = (e as CustomEvent).detail['index'];
+      var index = (e as CustomEvent).detail['index'] as int;
       var gistId = samples.elementAt(index).gistId;
       router.go('gist', {'gist': gistId});
     });
@@ -301,13 +321,19 @@ class Playground implements GistContainer, GistController {
       ..setAnchorElement(querySelector('#more-menu-button'))
       ..hoistMenuToBody();
     moreMenu.listen('MDCMenu:selected', (e) {
-      var idx = (e as CustomEvent).detail['index'];
+      var idx = (e as CustomEvent).detail['index'] as int;
       switch (idx) {
         case 0:
           _showSharingPage();
           break;
         case 1:
           _showGitHubPage();
+          break;
+        case 2:
+          _showDartDevPage();
+          break;
+        case 3:
+          _showFlutterDevPage();
           break;
       }
     });
@@ -377,7 +403,7 @@ class Playground implements GistContainer, GistController {
     webTabBar = DElement(querySelector('#web-tab-bar'));
     webLayoutTabController =
         MaterialTabController(MDCTabBar(webTabBar.element));
-    for (String name in ['dart', 'html', 'css']) {
+    for (var name in ['dart', 'html', 'css']) {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
         ga.sendEvent('edit', name);
@@ -395,15 +421,15 @@ class Playground implements GistContainer, GistController {
   void _initConsoles() {
     _leftConsole = Console(DElement(_leftConsoleElement));
     _rightConsole = Console(DElement(_rightConsoleContentElement));
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
   }
 
   Future<void> _initModules() async {
-    ModuleManager modules = ModuleManager();
+    var modules = ModuleManager();
 
     modules.register(DartPadModule());
     modules.register(DartServicesModule());
-    modules.register(DartSupportServicesModule());
     modules.register(CodeMirrorModule());
 
     await modules.start();
@@ -521,7 +547,7 @@ class Playground implements GistContainer, GistController {
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Dart SDK 2.4.0"
-      String versionText = 'Based on Dart SDK ${version.sdkVersionFull}';
+      var versionText = 'Based on Dart SDK ${version.sdkVersionFull}';
       querySelector('#dartpad-version').text = versionText;
     }).catchError((e) => null);
 
@@ -538,7 +564,7 @@ class Playground implements GistContainer, GistController {
 
   void _finishedInit() {
     // Clear the splash.
-    DSplash splash = DSplash(querySelector('div.splash'));
+    var splash = DSplash(querySelector('div.splash'));
     splash.hide();
   }
 
@@ -612,7 +638,7 @@ class Playground implements GistContainer, GistController {
   /// Loads the gist provided by the 'id' query parameter or stored in
   /// [GistStorage].
   LoadGistResult _loadGist() {
-    Uri url = Uri.parse(window.location.toString());
+    var url = Uri.parse(window.location.toString());
 
     if (url.hasQuery &&
         url.queryParameters['id'] != null &&
@@ -622,17 +648,17 @@ class Playground implements GistContainer, GistController {
     }
 
     if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
-      Gist blankGist = Gist();
+      var blankGist = Gist();
       editableGist.setBackingGist(blankGist);
 
-      Gist storedGist = _gistStorage.getStoredGist();
+      var storedGist = _gistStorage.getStoredGist();
 
       // Set the editable gist's backing gist so that the route handler can
       // detect the project type.
       editableGist.setBackingGist(storedGist);
 
       editableGist.description = storedGist.description;
-      for (GistFile file in storedGist.files) {
+      for (var file in storedGist.files) {
         editableGist.getGistFile(file.name).content = file.content;
       }
       return LoadGistResult.storage;
@@ -660,7 +686,7 @@ class Playground implements GistContainer, GistController {
   }
 
   void showGist(RouteEnterEvent event) {
-    String gistId = event.parameters['gist'];
+    var gistId = event.parameters['gist'] as String;
 
     _clearOutput();
 
@@ -675,7 +701,7 @@ class Playground implements GistContainer, GistController {
   void _showGist(String gistId) {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
-    bool loadedFromSaved = false;
+    var loadedFromSaved = false;
 
     // When sharing, we have to pipe the returned (created) gist through the
     // routing library to update the url properly.
@@ -693,9 +719,9 @@ class Playground implements GistContainer, GistController {
       if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
         loadedFromSaved = true;
 
-        Gist storedGist = _gistStorage.getStoredGist();
+        var storedGist = _gistStorage.getStoredGist();
         editableGist.description = storedGist.description;
-        for (GistFile file in storedGist.files) {
+        for (var file in storedGist.files) {
           editableGist.getGistFile(file.name).content = file.content;
         }
       }
@@ -714,7 +740,7 @@ class Playground implements GistContainer, GistController {
         }).catchError((e) => null);
       });
     }).catchError((e) {
-      String message = 'Error loading gist $gistId.';
+      var message = 'Error loading gist $gistId.';
       _showSnackbar(message);
       _logger.severe('$message: $e');
     });
@@ -728,16 +754,15 @@ class Playground implements GistContainer, GistController {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
 
-    Stopwatch compilationTimer = Stopwatch()..start();
+    var compilationTimer = Stopwatch()..start();
 
-    final CompileRequest compileRequest = CompileRequest()
-      ..source = context.dartSource;
+    final compileRequest = CompileRequest()..source = context.dartSource;
 
     try {
       if (hasFlutterContent(_context.dartSource) &&
           !isRunningInWebKit() &&
           _hasShownWebKitDialog) {
-        final CompileDDCResponse response = await dartServices
+        final response = await dartServices
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
 
@@ -756,7 +781,7 @@ class Playground implements GistContainer, GistController {
           modulesBaseUrl: response.modulesBaseUrl,
         );
       } else {
-        final CompileResponse response = await dartServices
+        final response = await dartServices
             .compile(compileRequest)
             .timeout(longServiceCallTimeout);
 
@@ -789,12 +814,11 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    SourceRequest input = SourceRequest()..source = _context.dartSource;
+    var input = SourceRequest()..source = _context.dartSource;
 
-    Lines lines = Lines(input.source);
+    var lines = Lines(input.source);
 
-    Future<AnalysisResults> request =
-        dartServices.analyze(input).timeout(serviceCallTimeout);
+    var request = dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
     return request.then((AnalysisResults result) {
@@ -810,13 +834,13 @@ class Playground implements GistContainer, GistController {
 
       _context.dartDocument
           .setAnnotations(result.issues.map((AnalysisIssue issue) {
-        int startLine = lines.getLineForOffset(issue.charStart);
-        int endLine =
+        var startLine = lines.getLineForOffset(issue.charStart);
+        var endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
 
-        Position start = Position(
+        var start = Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
-        Position end = Position(
+        var end = Position(
             endLine,
             issue.charStart +
                 issue.charLength -
@@ -826,8 +850,8 @@ class Playground implements GistContainer, GistController {
             start: start, end: end);
       }).toList());
 
-      bool hasErrors = result.issues.any((issue) => issue.kind == 'error');
-      bool hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
+      var hasErrors = result.issues.any((issue) => issue.kind == 'error');
+      var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
 
       // TODO: show errors or warnings
 
@@ -840,12 +864,11 @@ class Playground implements GistContainer, GistController {
   }
 
   Future<void> _format() {
-    String originalSource = _context.dartSource;
-    SourceRequest input = SourceRequest()..source = originalSource;
+    var originalSource = _context.dartSource;
+    var input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
-    Future<FormatResponse> request =
-        dartServices.format(input).timeout(serviceCallTimeout);
+    var request = dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
       formatButton.disabled = false;
@@ -985,6 +1008,14 @@ class Playground implements GistContainer, GistController {
 
   void _showGitHubPage() {
     window.open('https://github.com/dart-lang/dart-pad', 'DartPad on GitHub');
+  }
+
+  void _showDartDevPage() {
+    window.open('https://dart.dev', 'dart.dev');
+  }
+
+  void _showFlutterDevPage() {
+    window.open('https://flutter.dev', 'flutter.dev');
   }
 
   @override
@@ -1227,8 +1258,10 @@ class NewPadDialog {
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')),
         _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')),
-        _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
-        _createButton = MDCButton(querySelector('#new-pad-create-button')),
+        _cancelButton =
+            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
+        _createButton =
+            MDCButton(querySelector('#new-pad-create-button') as ButtonElement),
         _htmlSwitchContainer =
             DElement(querySelector('#new-pad-html-switch-container')),
         _htmlSwitch = MDCSwitch(
@@ -1292,5 +1325,6 @@ class Sample {
   final String gistId;
   final String name;
   final Layout layout;
+
   Sample(this.gistId, this.name, this.layout);
 }
